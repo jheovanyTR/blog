@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PermissionsController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProcedureController;
@@ -39,4 +40,6 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::post('asignarRol', [RolesController::class, 'asignarRol']);
     Route::post('getUser', [ProcedureController::class, 'getUser']);
     Route::post('getPost', [ProcedureController::class, 'getPost']);
+    Route::post('enviarCorreo', [PasswordResetController::class, 'sendResetLinkEmail']);
+    Route::post('sendEmail', [PasswordResetController::class, 'sendTestEmail']);
 });
