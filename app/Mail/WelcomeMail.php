@@ -13,12 +13,17 @@ class WelcomeMail extends Mailable
 {
     use Queueable, SerializesModels;
 
+    public $pin;
+
     /**
      * Create a new message instance.
      */
-    public function __construct()
+
+
+
+    public function __construct($pin)
     {
-        //
+        $this->pin = $pin;
     }
 
     /**

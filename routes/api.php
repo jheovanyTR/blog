@@ -13,6 +13,7 @@ use App\Http\Controllers\RolesController;
 use App\Http\Controllers\ToDoController;
 use App\Http\Controllers\UserController;
 use GuzzleHttp\Middleware;
+use Illuminate\Auth\Events\PasswordResetLinkSent;
 
 /*Route::get('/user', function (Request $request) {
     return $request->user();
@@ -41,5 +42,6 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::post('getUser', [ProcedureController::class, 'getUser']);
     Route::post('getPost', [ProcedureController::class, 'getPost']);
     Route::post('enviarCorreo', [PasswordResetController::class, 'sendResetLinkEmail']);
-    Route::post('sendEmail', [PasswordResetController::class, 'sendTestEmail']);
+    Route::post('verificarPin', [PasswordResetController::class, 'verifyPin']);
+    Route::post('actContraseña', [PasswordResetController::class, 'actualizarContraseña']);
 });

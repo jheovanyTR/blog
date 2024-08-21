@@ -8,5 +8,5 @@ Button Text
 </x-mail::button>
 
 Thanks,<br>
-{{ config('app.name') }}
+{{$pin}}
 </x-mail::message>

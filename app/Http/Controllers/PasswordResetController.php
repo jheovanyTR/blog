@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Mail\WelcomeMail;
+use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
@@ -56,29 +57,75 @@ class PasswordResetController extends Controller
 
     }
 
-    public function sendTestEmail()
+    public function verifyPin(Request $request)
     {
-        $htmlContent = '<!doctype html>
-        <html>
-          <head>
-            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-          </head>
-          <body style="font-family: sans-serif;">
-            <h1>Congrats for sending test email with Mailtrap!</h1>
-            <p>If you are viewing this email in your inbox – the integration works.</p>
-            <p>Now send your email using our SMTP server and integration of your choice!</p>
-            <p>Good luck! Hope it works.</p>
-          </body>
-        </html>';
+        $validator = Validator::make($request->all(),[
+            'email' => 'required|email|exists:users,email',
+            'token' => 'required'
+        ],
+        [
+            'required' => 'atributo es requerido',
+            'email' => 'ingrese un correo válido',
+            'exists' => 'No está registrado'
+        ]);
 
-        Mail::html($htmlContent, function ($message) {
-            $message->to('to@example.com')
-                    ->subject('You are awesome!')
-                    ->from('from@example.com');
-        });
+        if($validator->fails())
+            return response()->json([
+                'status' => false,
+                'message' => 'Datos inválidos',
+                'errors' => $validator->errors()
+            ], 401);
 
-        return 'Email sent!';
+        $check = DB::table('password_reset_tokens')->where('email', $request->email)->where('token', $request->token);
+
+        if($check->exists())
+        {
+            $difference = Carbon::now()->diffInSeconds($check->first()->created_at);
+            if($difference > 3600)
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Token Expired'
+                ], 400);
+        }
+
+        $delete = DB::table('password_reset_tokens')->where('email', $request->email)->where('token', $request->token)->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Ya puede cambiar su contraseña'
+        ], 200);
     }
 
+    public function actualizarContraseña(Request $request)
+    {
+        $validator = Validator::make($request->all(),[
+            'email' => 'required|email|exists:users,email',
+            'new_password' => 'required'
+        ],
+        [
+            'required' => 'El atributo es requerido',
+            'email' => 'El correo electrónico proporcionado no es válido',
+            'exists' => 'El correo electrónico no está registrado',
+
+
+        ]);
+
+        if($validator->fails())
+            return response()->json([
+                'status' => false,
+                'message' => 'Datos invalidos',
+                'errors' => $validator->fails()
+            ], 401);
+
+
+        $user = User::where('email', $request->email)->first();
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Contraseña actualizada correctamente'
+        ], 200);
+    }
 
 }
